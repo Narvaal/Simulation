@@ -1,14 +1,13 @@
 import * as THREE from 'three';
-import * as screen from './screen.js';
 
 // === Simulation Parameters ===
 const SIM_WIDTH = 100;
 const SIM_HEIGHT = 100;
 const WALL_THRESHOLD = 1;
-const WALL_FORCE = 2;    // Try a higher value
-const WALL_SPRING = 10;  // Try a higher value
+const WALL_FORCE = 2;
+const WALL_SPRING = 10;
 const FRAME_DURATION = 1000 / 60; // 60 FPS
-let simulationSpeed = 0.5; // User can change this
+window.simulationSpeed = 0.5;
 
 // Store all particles and their meshes
 let allParticles = [];
@@ -16,7 +15,7 @@ let grabbedParticles = [];
 let mouseCircle, mouseSimX = 0, mouseSimY = 0;
 let lastFrameTime = 0;
 
- // FPS calculation variables
+// FPS calculation variables
 let lastFpsUpdate = 0;
 let frames = 0;
 let fps = 0;
@@ -53,8 +52,9 @@ function randomX() { return Math.random() * SIM_WIDTH; }
 function randomY() { return Math.random() * SIM_HEIGHT; }
 
 // Particle definition
-function makeParticle(x, y, color, options = {}) {
+function makeParticle(x, y, options = {}) {
     const {
+        color = 0xffffff,
         initialSize = 0.5,
         shrinkRate = 0.001,
         grabRadius = 3,
@@ -90,11 +90,11 @@ function makeParticle(x, y, color, options = {}) {
     };
 }
 
-// Group creation
+// Update makeGroup to pass color via options:
 function makeGroup(count, color, options = {}) {
     const group = [];
     for (let i = 0; i < count; i++) {
-        const particle = makeParticle(randomX(), randomY(), color, options);
+        const particle = makeParticle(randomX(), randomY(), { ...options, color });
         group.push(particle);
         allParticles.push(particle);
     }
@@ -119,7 +119,6 @@ function applyWallForces(particle) {
         particle.y = SIM_HEIGHT;
         particle.vy = -Math.abs(particle.vy);
     }
-    // Optionally keep your soft wall force for smoother effect
 }
 
 // Apply a force rule between two groups of particles
@@ -147,7 +146,6 @@ function applyRule(groupA, groupB, force) {
             if (distance > 0 && distance < minDist) {
                 let safeDist = Math.max(distance, 0.01);
                 let repulse = repulseForce * (minDist - distance);
-                // Clamp repulse to a lower value, e.g. 0.2
                 repulse = Math.min(repulse, 0.2);
                 fx += (dx / safeDist) * repulse;
                 fy += (dy / safeDist) * repulse;
@@ -202,7 +200,17 @@ canvas.addEventListener('mousemove', (event) => {
     }
 });
 
-canvas.addEventListener('mousedown', () => {
+let isMouseDown = false;
+
+canvas.addEventListener('mousedown', (e) => {
+    if (mode === 'add') {
+        isMouseDown = true;
+        addUserCellAtMouse();
+        e.stopPropagation();
+        return;
+    }
+    if (mode !== 'interact') return;
+    isMouseDown = true;
     if (mouseCircle) mouseCircle.visible = true;
     grabbedParticles = [];
     for (const particle of allParticles) {
@@ -219,12 +227,20 @@ canvas.addEventListener('mousedown', () => {
     }
 });
 canvas.addEventListener('mouseup', () => {
+    isMouseDown = false;
+    if (mode !== 'interact') return;
     if (mouseCircle) mouseCircle.visible = false;
     grabbedParticles = [];
 });
 
+canvas.addEventListener('mousemove', () => {
+    if (mode === 'add' && isMouseDown) {
+        addUserCellAtMouse();
+    }
+});
+
 // Create groups
-const redParticles = makeGroup(800,"red", {
+const redParticles = makeGroup(800, "red", {
     initialSize: 0.7,
     shrinkRate: 0,
     grabRadius: 4,
@@ -259,7 +275,7 @@ const greenParticles = makeGroup(800, "green", {
 });
 
 // Eat mechanic: merge overlapping particles
-let enableEat = true; // Set to false to disable the eat mechanic
+let enableEat = true;
 function eatParticles() {
     for (let i = allParticles.length - 1; i >= 0; i--) {
         const pA = allParticles[i];
@@ -328,7 +344,6 @@ function animate(now) {
         grabbed.particle.y = mouseSimY + grabbed.offsetY;
         grabbed.particle.vx = 0;
         grabbed.particle.vy = 0;
-        // Update mesh position so it moves visually even when paused
         grabbed.particle.mesh.position.x = grabbed.particle.x;
         grabbed.particle.mesh.position.y = grabbed.particle.y;
     }
@@ -338,7 +353,7 @@ function animate(now) {
 
         // FPS calculation (only for actual simulation frames)
         frames++;
-        if (now - lastFpsUpdate > 1000) { // update every second
+        if (now - lastFpsUpdate > 1000) {
             fps = Math.round((frames * 1000) / (now - lastFpsUpdate));
             lastFpsUpdate = now;
             frames = 0;
@@ -370,3 +385,48 @@ function animate(now) {
 }
 
 animate();
+
+// --- Exported functions for screen.js ---
+
+const userCells = [];
+
+export function setMode(newMode) {
+    mode = newMode;
+}
+
+export function addUserCellAtMouse() {
+    const cellData = userCells[userCells.length - 1];
+    let colorValue = cellData.color;
+    if (typeof colorValue === 'string' && colorValue.startsWith('#')) {
+        colorValue = parseInt(colorValue.replace('#', '0x'), 16);
+    }
+    const particle = makeParticle(mouseSimX, mouseSimY, { ...cellData, color: colorValue });
+    allParticles.push(particle);
+}
+
+export function saveUserCell(cellData) {
+    userCells.push(cellData);
+}
+
+export function clearParticles() {
+    for (const particle of allParticles) {
+        scene.remove(particle.mesh);
+    }
+    allParticles = [];
+    grabbedParticles = [];
+}
+
+export function applyElectricForce() {
+    for (const particle of allParticles) {
+        const targetX = Math.random() * SIM_WIDTH;
+        const targetY = Math.random() * SIM_HEIGHT;
+        const dx = targetX - particle.x;
+        const dy = targetY - particle.y;
+        const length = Math.sqrt(dx * dx + dy * dy) || 1;
+        const force = 50 + Math.random() * 1.0;
+        particle.vx += (dx / length) * force;
+        particle.vy += (dy / length) * force;
+    }
+}
+
+let mode = 'interact'; // 'interact' or 'add'

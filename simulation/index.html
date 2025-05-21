@@ -11,11 +11,16 @@
     
     <nav class="d-flex flex-column flex-shrink-0 position-fixed" style="width: 60px; height: 100vh; left: 0; top: 0; z-index: 1030;">
       <ul class="nav nav-pills nav-flush flex-column mb-auto text-center mt-3">
-        <li class="nav-item mb-2">
-          <a href="#" id="interact-button" class="nav-link active py-3 rounded-0" title="Colorize">
+        <div class="btn-group-vertical" role="group" aria-label="Mode selection" style="width: 100%;">
+          <input type="radio" class="btn-check" name="mode" id="interact-button" autocomplete="off" checked>
+          <label class="nav-link py-3 rounded-0 btn btn-outline-primary" for="interact-button" title="Interact" style="cursor:pointer;">
             <span class="material-symbols-outlined">colorize</span>
-          </a>
-        </li>
+          </label>
+          <input type="radio" class="btn-check" name="mode" id="add-button" autocomplete="off">
+          <label class="nav-link py-3 rounded-0 btn btn-outline-primary" for="add-button" title="Add" style="cursor:pointer;">
+            <span class="material-symbols-outlined">add</span>
+          </label>
+        </div>
         <li class="mb-2">
           <a href="#" id="clear-button" class="nav-link py-3 rounded-0" title="Pill">
             <span class="material-symbols-outlined">pill</span>
@@ -26,41 +31,99 @@
             <span class="material-symbols-outlined">electric_bolt</span>
           </a>
         </li>
-          <li class="mb-2">
-          <a href="#" id="cell-button" class="nav-link py-3 rounded-0" title="Microbiology">
+        <li class="mb-2">
+          <a href="#" id="cell-button" class="nav-link py-3 rounded-0" title="Microbiology" data-bs-toggle="offcanvas" data-bs-target="#cell-menu" aria-controls="cell-menu">
             <span class="material-symbols-outlined">microbiology</span>
-          </a>
-        </li>
-          <li class="mb-2">
-          <a href="#" id="add-button" class="nav-link py-3 rounded-0" title="Add">
-            <span class="material-symbols-outlined">add</span>
           </a>
         </li>
       </ul>
     </nav>
 
     <!-- Menu de controle no canto superior direito -->
-    <div class="position-fixed top-0 end-0 m-3" style="z-index: 2001; width: 240px;">
+    <div class="position-fixed top-0 end-0 m-3" style="z-index: 2001; ">
       <div class="card shadow-sm p-2">
-        <div class="d-flex align-items-center mb-2">
-          <button id="btn-1x" class="btn btn-sm btn-outline-primary me-1">1x</button>
-          <button id="btn-2x" class="btn btn-sm btn-outline-primary me-1">2x</button>
-          <button id="btn-3x" class="btn btn-sm btn-outline-primary me-1">3x</button>
+        <div class="d-flex align-items-center mb-2 flex-row">
+          <label class="form-label mb-0 me-2" for="sim-fps">FPS:</label>
+          <label id="fps" class="me-3"></label>
+          <div class="btn-group me-2" role="group" aria-label="Simulation speed">
+            <input type="radio" class="btn-check" name="sim-speed" id="btn-0_5x" autocomplete="off">
+            <label class="btn btn-sm btn-outline-primary" for="btn-0_5x">0.5x</label>
+            <input type="radio" class="btn-check" name="sim-speed" id="btn-1x" autocomplete="off" checked>
+            <label class="btn btn-sm btn-outline-primary" for="btn-1x">1x</label>
+            <input type="radio" class="btn-check" name="sim-speed" id="btn-2x" autocomplete="off">
+            <label class="btn btn-sm btn-outline-primary" for="btn-2x">2x</label>
+          </div>
           <button id="btn-pause" class="btn btn-sm btn-outline-danger">Pause</button>
-        </div>
-        <div class="mb-1">
-          <label class="form-label mb-0" for="sim-speed">Velocidade:</label>
-          <label id="sim-speed" type="text" class="form-control form-control-sm" readonly>
-        </div>
-        <div>
-          <label class="form-label mb-0" for="sim-fps">FPS:</label>
-          <label id="fps"></label>
         </div>
       </div>
     </div>
 
     <!-- Ajuste o canvas para não ficar atrás do menu lateral -->
     <canvas id="bg"></canvas>
+
+    <div class="offcanvas offcanvas-start" tabindex="-1" id="cell-menu" aria-labelledby="cellMenuLabel">
+      <div class="offcanvas-header">
+        <h5 class="offcanvas-title" id="cellMenuLabel">Cell Menu</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
+      </div>
+      <div class="offcanvas-body">
+        <!-- Canvas on top -->
+        <canvas id="cell-preview-canvas" width="200" height="200" class="mb-3 border rounded w-100"></canvas>
+        <form>
+          <div class="mb-2">
+            <label class="form-label" for="cell-initialSize">initialSize</label>
+            <input type="range" class="form-range" id="cell-initialSize" min="0.1" max="2" step="0.01" value="0.5" oninput="cellInitialSizeValue.value = value">
+            <output id="cellInitialSizeValue">0.5</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-shrinkRate">shrinkRate</label>
+            <input type="range" class="form-range" id="cell-shrinkRate" min="0" max="0.01" step="0.0001" value="0.001" oninput="cellShrinkRateValue.value = value">
+            <output id="cellShrinkRateValue">0.001</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-grabRadius">grabRadius</label>
+            <input type="range" class="form-range" id="cell-grabRadius" min="1" max="10" step="0.1" value="3" oninput="cellGrabRadiusValue.value = value">
+            <output id="cellGrabRadiusValue">3</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-minDist">minDist</label>
+            <input type="range" class="form-range" id="cell-minDist" min="0.1" max="5" step="0.01" value="1.0" oninput="cellMinDistValue.value = value">
+            <output id="cellMinDistValue">1.0</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-repulseForce">repulseForce</label>
+            <input type="range" class="form-range" id="cell-repulseForce" min="-1" max="1" step="0.01" value="0.1" oninput="cellRepulseForceValue.value = value">
+            <output id="cellRepulseForceValue">0.1</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-friction">friction</label>
+            <input type="range" class="form-range" id="cell-friction" min="0.5" max="1" step="0.01" value="0.95" oninput="cellFrictionValue.value = value">
+            <output id="cellFrictionValue">0.95</output>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-forceRadius">forceRadius</label>
+            <input type="range" class="form-range" id="cell-forceRadius" min="10" max="200" step="1" value="80" oninput="cellForceRadiusValue.value = value">
+            <output id="cellForceRadiusValue">80</output>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="cell-enableEat" checked>
+            <label class="form-check-label" for="cell-enableEat">enableEat</label>
+          </div>
+          <div class="form-check mb-2">
+            <input class="form-check-input" type="checkbox" id="cell-enableShrink" checked>
+            <label class="form-check-label" for="cell-enableShrink">enableShrink</label>
+          </div>
+          <div class="mb-2">
+            <label class="form-label" for="cell-color">color</label>
+            <input type="color" class="form-control form-control-color" id="cell-color" value="#ff0000" title="Choose color">
+          </div>
+          <!-- Save button at the end -->
+          <div class="d-grid mt-3">
+            <button type="button" id="cell-save-btn" class="btn btn-primary">Save</button>
+          </div>
+        </form>
+      </div>
+    </div>
 
     <script type="module" src="/src/main.js"></script> 
     <script type="module" src="/src/screen.js"></script> 
