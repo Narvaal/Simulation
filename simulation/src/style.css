@@ -4,7 +4,9 @@ html, body {
   overflow: hidden;
   width: 100vw;
   height: 100vh;
+  background: #000; /* fundo preto */
 }
+
 #bg {
   position: fixed;
   top: 0;
@@ -13,4 +15,87 @@ html, body {
   height: 100vh;
   display: block;
   z-index: 1;
+}
+
+/* ===========================
+   Personalização do painel e botões
+   =========================== */
+
+/* Cor de fundo e borda do painel de configurações */
+#settings-panel .card {
+  background: #181c24;         /* cor de fundo da janela */
+  border: 2px solid #2a2e39;   /* borda da janela */
+  color: #f8f9fa;              /* cor do texto */
+  box-shadow: 0 4px 24px #000a;
+}
+
+/* Cor do botão X (fechar) */
+#btn-close-settings {
+  filter: invert(80%);
+  opacity: 0.7;
+  transition: opacity 0.2s;
+}
+#btn-close-settings:hover {
+  opacity: 1;
+}
+
+/* Cor dos botões de velocidade */
+.btn-outline-primary,
+.btn-outline-primary:focus {
+  color: #4fc3f7;
+  border-color: #4fc3f7;
+  background: transparent;
+}
+.btn-outline-primary.active,
+.btn-outline-primary:active,
+.btn-outline-primary:checked,
+.btn-outline-primary:hover {
+  background: #4fc3f7;
+  color: #181c24;
+  border-color: #4fc3f7;
+}
+
+/* Botão Pause */
+.btn-outline-danger,
+.btn-outline-danger:focus {
+  color: #ff5252;
+  border-color: #ff5252;
+  background: transparent;
+}
+.btn-outline-danger.active,
+.btn-outline-danger:active,
+.btn-outline-danger:checked,
+.btn-outline-danger:hover {
+  background: #ff5252;
+  color: #181c24;
+  border-color: #ff5252;
+}
+
+/* Botão Random */
+.btn-outline-secondary,
+.btn-outline-secondary:focus {
+  color: #bdbdbd;
+  border-color: #bdbdbd;
+  background: transparent;
+}
+.btn-outline-secondary.active,
+.btn-outline-secondary:active,
+.btn-outline-secondary:checked,
+.btn-outline-secondary:hover {
+  background: #bdbdbd;
+  color: #181c24;
+  border-color: #bdbdbd;
+}
+
+/* Botão flutuante de abrir configurações */
+#btn-open-settings {
+  background: #4fc3f7;
+  color: #181c24;
+  border: none;
+  box-shadow: 0 2px 8px #0006;
+  transition: background 0.2s, color 0.2s;
+}
+#btn-open-settings:hover {
+  background: #0288d1;
+  color: #fff;
 }
