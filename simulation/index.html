@@ -9,7 +9,6 @@
     <link rel="stylesheet" href="/src/style.css" />
   </head>
   <body>
-    <!-- Overlay de instruções tipo vidro melhorado -->
     <div id="instructions-overlay" style="
       position: fixed;
       top: 0; left: 0; width: 100vw; height: 100vh;
@@ -28,24 +27,21 @@
         <br>
         <b>Welcome to my lab</b><br>
         <br>
-        Here you can <b>observe</b> my little cells and <b>interact</b> with them.<br><br>
+        Here you can <b>observe</b> my little cells and <b>interact</b> with them.<br>
         <span style="color:#4fc3f7;">Scroll</span> to zoom, 
         <span style="color:#4fc3f7;">right click</span> to make cells move and
         <span style="color:#4fc3f7;">left click</span> to drag the camera.
       </div>
-      <div style="color:#777777; font-size:1.1rem;">Click anywhere to start</div>
+      <div style="color:#777777; font-size:1.1rem;">For the best experience, please use a desktop or laptop computer.</div>
+      <div style="color:#fff; font-size:1.1rem;">Click anywhere to start</div>
     </div>
 
-    <!-- Menu de controle no canto superior direito -->
-    <div id="settings-panel" class="position-fixed top-0 end-0 m-3" style="z-index: 2001;">
-      <div class="card shadow-sm p-2 position-relative">
-        <!-- Botão X para fechar -->
+    <div id="settings-panel" class="position-fixed top-0 end-0 m-3" style="z-index: 2001; width:10vw; height:10vh; min-width:280px; min-height:120px;">
+      <div class="card shadow-sm p-2 position-relative h-100">
         <button id="btn-close-settings" type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close"></button>
-        <!-- Primeira linha: label Settings centralizada -->
         <div class="mb-2 text-center">
           <span class="fw-bold">Settings</span>
         </div>
-        <!-- Segunda linha: botões de velocidade ocupando toda a largura -->
         <div class="mb-2">
           <div class="btn-group w-100" role="group" aria-label="Simulation speed">
             <input type="radio" class="btn-check" name="sim-speed" id="btn-0_5x" autocomplete="off">
@@ -56,32 +52,20 @@
             <label class="btn btn-sm btn-outline-primary w-100" for="btn-2x">2x</label>
           </div>
         </div>
-        <!-- Terceira linha: botões Pause e Random centralizados e ocupando toda a largura -->
         <div class="d-flex gap-2 justify-content-center">
           <button id="btn-pause" class="btn btn-sm btn-outline-danger flex-fill text-center">Pause</button>
           <button id="btn-random" class="btn btn-sm btn-outline-secondary flex-fill text-center">Random</button>
         </div>
       </div>
     </div>
-    <!-- Botão para abrir o painel de configurações -->
     <button id="btn-open-settings" class="btn btn-primary position-fixed top-0 end-0 m-3" style="z-index:2002; display:none;">
       <span class="material-symbols-outlined align-middle">settings</span>
     </button>
 
-    <!-- Three.js canvas (in front) -->
     <canvas id="bg"></canvas>
 
-    <!-- Offcanvas and other UI elements remain unchanged -->
-    <div class="offcanvas offcanvas-start" tabindex="-1" id="cell-menu" aria-labelledby="cellMenuLabel">
-      <!-- ...rest of your menu code... -->
-    </div>
-
-    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-    <script type="module" src="/src/screen.js"></script>
+    <script type="module" src="/src/magic.js"></script>
     <script>
-      // Mostra/esconde o painel de configurações
       const panel = document.getElementById('settings-panel');
       const btnClose = document.getElementById('btn-close-settings');
       const btnOpen = document.getElementById('btn-open-settings');
@@ -95,18 +79,15 @@
         btnOpen.style.display = 'none';
       });
 
-      // Pausa a simulação ao carregar e mostra instruções
       window.paused = true;
       let gWas = null;
       if (typeof g !== "undefined") {
         gWas = g;
         g = 0;
       }
-      // Deixa o botão Pause já "clicado"
       pauseBtn.classList.add('active');
       pauseBtn.textContent = 'Resume';
 
-      // Overlay logic
       const instructions = document.getElementById('instructions-overlay');
       instructions.addEventListener('click', () => {
         instructions.style.opacity = '0';

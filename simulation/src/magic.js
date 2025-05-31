@@ -2,11 +2,16 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+// Detect if user is on a phone (simple check)
+function isMobile() {
+    return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+}
+
 // =====================
-// CONFIGURAÇÕES DA SIMULAÇÃO
+// SIMULATION CONFIG
 // =====================
-const SIZE = 400;
-const NUM_CELLS_PER_GROUP = 200;
+const SIZE = isMobile() ? 200 : 400; 
+const NUM_CELLS_PER_GROUP = isMobile() ? 100 : 200;
 const CELL_SIZE_MIN = 0.3;
 const CELL_SIZE_MAX = 0.6;
 const FORCE_RADIUS_MIN = 10;
@@ -24,14 +29,13 @@ const COHESION_FORCE = 0.0006;
 const CENTER_ATTRACT = 0.00003;
 const SIMULATION_GRAVITY = 1.2;
 let g = SIMULATION_GRAVITY;
-// =====================
 
+// =====================
+// THREE.JS SETUP
+// =====================
 const canvas = document.querySelector('#bg');
 const scene = new THREE.Scene();
 
-// =====================
-// CONTROLES E CÂMERA
-// =====================
 const camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 100000);
 camera.position.set(SIZE / 2, SIZE / 2, 100);
 camera.lookAt(SIZE / 2, SIZE / 2, 0);
@@ -46,6 +50,11 @@ controls.dampingFactor = 0.1;
 controls.target.set(SIZE / 2, SIZE / 2, 0);
 controls.update();
 controls.mouseButtons.LEFT = THREE.NONE;
+if (isMobile()) {
+    controls.enableRotate = false;
+    controls.enableZoom = true;
+    controls.enablePan = true;
+}
 
 scene.add(new THREE.AmbientLight(0xffffff, 0.5));
 const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
@@ -53,34 +62,58 @@ dirLight.position.set(0, 0, 100);
 scene.add(dirLight);
 
 // =====================
-// VARIÁVEIS GLOBAIS
+// GLOBALS
 // =====================
 let allCells = [];
 let shockActive = false;
 let paused = false;
 
 // =====================
-// BOTÕES DE CONTROLE
+// CONTROL BUTTONS
 // =====================
 function setSimSpeed(val) {
     g = val;
 }
 
+const pauseBtn = document.getElementById('btn-pause');
 document.getElementById('btn-0_5x').addEventListener('change', function() {
-    if (this.checked) setSimSpeed(SIMULATION_GRAVITY * 0.5);
+    if (this.checked) {
+        setSimSpeed(SIMULATION_GRAVITY * 0.5);
+        if (paused) {
+            paused = false;
+            pauseBtn.classList.remove('active');
+            pauseBtn.textContent = 'Pause';
+            g = SIMULATION_GRAVITY * 0.5;
+        }
+    }
 });
 document.getElementById('btn-1x').addEventListener('change', function() {
-    if (this.checked) setSimSpeed(SIMULATION_GRAVITY);
+    if (this.checked) {
+        setSimSpeed(SIMULATION_GRAVITY);
+        if (paused) {
+            paused = false;
+            pauseBtn.classList.remove('active');
+            pauseBtn.textContent = 'Pause';
+            g = SIMULATION_GRAVITY;
+        }
+    }
 });
 document.getElementById('btn-2x').addEventListener('change', function() {
-    if (this.checked) setSimSpeed(SIMULATION_GRAVITY * 2);
+    if (this.checked) {
+        setSimSpeed(SIMULATION_GRAVITY * 2);
+        if (paused) {
+            paused = false;
+            pauseBtn.classList.remove('active');
+            pauseBtn.textContent = 'Pause';
+            g = SIMULATION_GRAVITY * 2;
+        }
+    }
 });
-const pauseBtn = document.getElementById('btn-pause');
 pauseBtn.addEventListener('click', function () {
     paused = !paused;
     if (paused) {
         g = 0;
-        shockActive = false; // <--- Add this line
+        shockActive = false;
         pauseBtn.classList.add('active');
         pauseBtn.textContent = 'Resume';
     } else {
@@ -92,7 +125,6 @@ pauseBtn.addEventListener('click', function () {
 
 canvas.addEventListener('mousedown', (e) => {
     if (e.button === 0) {
-        // If paused, resume and unpause before shocking
         if (paused) {
             paused = false;
             g = SIMULATION_GRAVITY * 2;
@@ -110,14 +142,26 @@ canvas.addEventListener('mouseup', (e) => {
         g = SIMULATION_GRAVITY;
     }
 });
-window.addEventListener('resize', () => {
-    camera.aspect = window.innerWidth / window.innerHeight;
-    camera.updateProjectionMatrix();
-    renderer.setSize(window.innerWidth, window.innerHeight);
+canvas.addEventListener('touchstart', (e) => {
+    if (e.touches.length === 1) {
+        if (paused) {
+            paused = false;
+            g = SIMULATION_GRAVITY * 2;
+            pauseBtn.classList.remove('active');
+            pauseBtn.textContent = 'Pause';
+        } else {
+            g = SIMULATION_GRAVITY * 2;
+        }
+        shockActive = true;
+    }
+});
+canvas.addEventListener('touchend', () => {
+    shockActive = false;
+    g = SIMULATION_GRAVITY;
 });
 
 // =====================
-// FUNÇÕES DE CÉLULAS
+// CELL FUNCTIONS
 // =====================
 function drawCell(cell) {
     let mesh, membraneMesh;
@@ -129,7 +173,6 @@ function drawCell(cell) {
         const y = SIZE / 2 + Math.sin(angle) * CIRCLE_SPAWN_RADIUS;
         mesh.position.set(x, y, 0);
 
-        // Membrana: 10 vezes maior que a célula
         const membraneGeometry = new THREE.CircleGeometry(cell.size * 10, 32);
         const membraneMaterial = new THREE.MeshBasicMaterial({
             color: cell.color,
@@ -173,7 +216,6 @@ function drawCell(cell) {
         mesh = new THREE.Mesh(geometry, material);
         mesh.position.set(x, y, 0);
 
-        // Membrana: 10 vezes maior que a célula
         const membraneGeometry = new THREE.CircleGeometry(cell.size * 10, 32);
         const membraneMaterial = new THREE.MeshBasicMaterial({
             color: cell.color,
@@ -217,7 +259,7 @@ function clearCells() {
 }
 
 // =====================
-// REGRAS DE INTERAÇÃO
+// INTERACTION RULES
 // =====================
 function applyRule(groupA, groupB, force) {
     for (let i = 0; i < groupA.length; i++) {
@@ -257,14 +299,13 @@ function applyRule(groupA, groupB, force) {
 }
 
 // =====================
-// ANIMAÇÃO DAS CÉLULAS
+// CELL ANIMATION
 // =====================
 function animateCells() {
     const cx = SIZE / 2, cy = SIZE / 2, simRadius = SIZE / 2;
     let nearWallCount = 0;
     const wallThreshold = simRadius - 8;
 
-    // Conta quantas partículas estão perto da parede
     for (const cell of allCells) {
         const dx = cell.mesh.position.x - cx;
         const dy = cell.mesh.position.y - cy;
@@ -294,11 +335,9 @@ function animateCells() {
             cell.mesh.position.y = cy + Math.sin(angle) * maxDist;
         }
 
-        // Atração para o centro
         cell.vx += (cx - cell.mesh.position.x) * CENTER_ATTRACT * dist * g;
         cell.vy += (cy - cell.mesh.position.y) * CENTER_ATTRACT * dist * g;
 
-        // SHOCK: impulso aleatório ao clicar
         if (!window.paused && shockActive && g > 0) {
             const angle = Math.random() * Math.PI * 2;
             const strength = (1.5 + Math.random()) * g;
@@ -306,18 +345,15 @@ function animateCells() {
             cell.vy += Math.sin(angle) * strength;
         }
 
-        // Ruído
         cell.vx += Math.sin(Date.now() * 0.001 + cell.mesh.position.x) * NOISE_FORCE * g;
         cell.vy += Math.cos(Date.now() * 0.001 + cell.mesh.position.y) * NOISE_FORCE * g;
 
-        // Zera velocidades quando g = 0
         if (g === 0) {
             cell.vx = 0;
             cell.vy = 0;
         }
     }
 
-    // Alinhamento e coesão (boids)
     for (const cell of allCells) {
         let avgVX = 0, avgVY = 0, count = 0;
         let centerX = 0, centerY = 0;
@@ -346,7 +382,6 @@ function animateCells() {
         }
     }
 
-    // Sincroniza membrana com núcleo
     for (const cell of allCells) {
         if (cell.membraneMesh) {
             cell.membraneMesh.position.copy(cell.mesh.position);
@@ -356,7 +391,7 @@ function animateCells() {
 }
 
 // =====================
-// GERENCIAMENTO DE GRUPOS E REGRAS
+// GROUPS AND RULES MANAGEMENT
 // =====================
 const ruleForces = {
     blue_blue:    Math.random() * 1 - 0.5,
@@ -379,7 +414,6 @@ const ruleForces = {
 
 function generateRandomCells() {
     clearCells();
-    // Novas forças aleatórias
     ruleForces.blue_blue    = Math.random() * 0.6 - 0.3;
     ruleForces.blue_red     = Math.random() * 0.6 - 0.3;
     ruleForces.blue_yellow  = Math.random() * 0.6 - 0.3;
@@ -433,10 +467,10 @@ function generateRandomCells() {
 document.getElementById('btn-random').addEventListener('click', generateRandomCells);
 
 // =====================
-// CARREGAMENTO DO MODELO E INICIALIZAÇÃO
+// MODEL LOADING & INIT
 // =====================
 const loader = new GLTFLoader();
-loader.load('/models/lympocyte.glb', function(gltf) {
+loader.load('/models/cell.glb', function(gltf) {
     gltf.scene.traverse(child => {
         if (child.isMesh) {
             child.castShadow = true;
