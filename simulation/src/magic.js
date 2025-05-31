@@ -11,7 +11,7 @@ function isMobile() {
 // SIMULATION CONFIG
 // =====================
 const SIZE = isMobile() ? 200 : 400; 
-const NUM_CELLS_PER_GROUP = isMobile() ? 100 : 200;
+const NUM_CELLS_PER_GROUP = isMobile() ? 30 : 200;
 const CELL_SIZE_MIN = 0.3;
 const CELL_SIZE_MAX = 0.6;
 const FORCE_RADIUS_MIN = 10;

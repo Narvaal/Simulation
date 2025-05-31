@@ -23,7 +23,7 @@
       text-align: center;
     ">
       <img src="/logo.png" alt="Cell Logo" style="max-width: 100%; max-height: 100px;">
-      <div style="color:#fff; font-size:1.15rem; margin-bottom: 1.2rem; line-height:1.6;">
+      <div id="instructions-text" style="color:#fff; font-size:1.15rem; margin-bottom: 1.2rem; line-height:1.6;">
         <br>
         <b>Welcome to my lab</b><br>
         <br>
@@ -32,15 +32,17 @@
         <span style="color:#4fc3f7;">right click</span> to make cells move and
         <span style="color:#4fc3f7;">left click</span> to drag the camera.
       </div>
-      <div style="color:#777777; font-size:1.1rem;">For the best experience, please use a desktop or laptop computer.</div>
-      <div style="color:#fff; font-size:1.1rem;">Click anywhere to start</div>
+      <div id="instructions-note" style="color:#777777; font-size:1.1rem;">For the best experience, please use a desktop or laptop computer.</div>
+      <div id="instructions-start" style="color:#fff; font-size:1.1rem;">Click anywhere to start</div>
     </div>
 
-    <div id="settings-panel" class="position-fixed top-0 end-0 m-3" style="z-index: 2001; width:10vw; height:10vh; min-width:280px; min-height:120px;">
+    <!-- Settings Panel -->
+    <div id="settings-panel" class="position-fixed top-0 end-0"
+         style="z-index: 2001; width:20vw; min-width:280px; max-width:98vw; height:auto; min-height:220px; display: block;">
       <div class="card shadow-sm p-2 position-relative h-100">
         <button id="btn-close-settings" type="button" class="btn-close position-absolute top-0 end-0 m-2" aria-label="Close"></button>
         <div class="mb-2 text-center">
-          <span class="fw-bold">Settings</span>
+          <span id="settings-title" class="fw-bold">Settings</span>
         </div>
         <div class="mb-2">
           <div class="btn-group w-100" role="group" aria-label="Simulation speed">
@@ -58,26 +60,128 @@
         </div>
       </div>
     </div>
-    <button id="btn-open-settings" class="btn btn-primary position-fixed top-0 end-0 m-3" style="z-index:2002; display:none;">
-      <span class="material-symbols-outlined align-middle">settings</span>
+    <button id="btn-open-settings" class="btn btn-primary position-fixed top-0 end-0"
+      style="z-index:2002; width:3.5rem; height:3.5rem; font-size:2.2rem; display:flex; align-items:center; justify-content:center; right:1rem; top:1rem; display: none;">
+      <span class="material-symbols-outlined align-middle" style="font-size:2.2rem;">settings</span>
     </button>
 
     <canvas id="bg"></canvas>
 
     <script type="module" src="/src/magic.js"></script>
     <script>
+      function isMobile() {
+        return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
+      }
+
+      if (isMobile()) {
+        document.body.style.fontSize = "1.3rem";
+        const instructionsText = document.getElementById('instructions-text');
+        if (instructionsText) {
+          instructionsText.style.fontSize = "2rem";
+        }
+        const instructionsNote = document.getElementById('instructions-note');
+        if (instructionsNote) {
+          instructionsNote.style.fontSize = "1.7rem";
+        }
+        const instructionsStart = document.getElementById('instructions-start');
+        if (instructionsStart) {
+          instructionsStart.style.fontSize = "1.7rem";
+        }
+        const pauseBtn = document.getElementById('btn-pause');
+        const randomBtn = document.getElementById('btn-random');
+        if (pauseBtn) {
+          pauseBtn.classList.add('btn-lg', 'w-100', 'mb-2');
+          pauseBtn.classList.remove('btn-sm', 'flex-fill');
+          pauseBtn.style.paddingTop = "1.2rem";
+          pauseBtn.style.paddingBottom = "1.2rem";
+          pauseBtn.style.fontWeight = "bold";
+          pauseBtn.style.fontSize = "2rem";
+        }
+        if (randomBtn) {
+          randomBtn.classList.add('btn-lg', 'w-100', 'mb-2');
+          randomBtn.classList.remove('btn-sm', 'flex-fill');
+          randomBtn.style.paddingTop = "1.2rem";
+          randomBtn.style.paddingBottom = "1.2rem";
+          randomBtn.style.fontWeight = "bold";
+          randomBtn.style.fontSize = "2rem";
+        }
+        const btnRow = pauseBtn && randomBtn ? pauseBtn.parentElement : null;
+        if (btnRow) {
+          btnRow.classList.remove('d-flex', 'gap-2', 'justify-content-center');
+          btnRow.classList.add('d-flex', 'flex-column', 'gap-2');
+          btnRow.style.width = "100%";
+        }
+        const speedLabels = [
+          document.querySelector('label[for="btn-0_5x"]'),
+          document.querySelector('label[for="btn-1x"]'),
+          document.querySelector('label[for="btn-2x"]')
+        ];
+        speedLabels.forEach(label => {
+          if (label) {
+            label.classList.add('btn-lg', 'w-100', 'mb-2');
+            label.classList.remove('btn-sm', 'w-100');
+            label.style.display = 'block';
+            label.style.paddingTop = "1.2rem";
+            label.style.paddingBottom = "1.2rem";
+            label.style.fontWeight = "bold";
+            label.style.fontSize = "2rem";
+          }
+        });
+        const btnGroup = document.querySelector('.btn-group');
+        if (btnGroup) {
+          btnGroup.classList.remove('btn-group', 'w-100');
+          btnGroup.classList.add('d-block');
+          btnGroup.style.width = "100%";
+        }
+        const settingsPanel = document.getElementById('settings-panel');
+        if (settingsPanel) {
+          settingsPanel.style.width = "100vw";
+          settingsPanel.style.minWidth = "0";
+          settingsPanel.style.maxWidth = "100vw";
+          settingsPanel.style.height = "auto";
+          settingsPanel.style.minHeight = "0";
+        }
+        const btnClose = document.getElementById('btn-close-settings');
+        if (btnClose) {
+          btnClose.style.width = "3rem";
+          btnClose.style.height = "3rem";
+          btnClose.style.fontSize = "2.5rem";
+          btnClose.style.padding = "0.5rem";
+        }
+        const btnOpen = document.getElementById('btn-open-settings');
+        if (btnOpen) {
+          btnOpen.style.width = "4rem";
+          btnOpen.style.height = "4rem";
+          btnOpen.style.fontSize = "2.5rem";
+          const icon = btnOpen.querySelector('.material-symbols-outlined');
+          if (icon) icon.style.fontSize = "2.5rem";
+          btnOpen.style.display = "flex";
+          btnOpen.style.alignItems = "center";
+          btnOpen.style.justifyContent = "center";
+          btnOpen.style.padding = "0.5rem";
+          btnOpen.style.right = "0.5rem";
+          btnOpen.style.top = "0.5rem";
+        }
+      }
+
       const panel = document.getElementById('settings-panel');
       const btnClose = document.getElementById('btn-close-settings');
       const btnOpen = document.getElementById('btn-open-settings');
       const pauseBtn = document.getElementById('btn-pause');
+
       btnClose.addEventListener('click', () => {
         panel.style.display = 'none';
-        btnOpen.style.display = 'block';
+        btnOpen.style.display = 'flex';
       });
+
       btnOpen.addEventListener('click', () => {
         panel.style.display = 'block';
         btnOpen.style.display = 'none';
       });
+
+      // On page load, show panel and hide cog
+      panel.style.display = 'block';
+      btnOpen.style.display = 'none';
 
       window.paused = true;
       let gWas = null;
@@ -91,12 +195,18 @@
       const instructions = document.getElementById('instructions-overlay');
       instructions.addEventListener('click', () => {
         instructions.style.opacity = '0';
-        setTimeout(() => { instructions.style.display = 'none'; }, 400);
+        instructions.style.display = 'none';
         window.paused = false;
         if (typeof gWas === "number") g = gWas;
         pauseBtn.classList.remove('active');
         pauseBtn.textContent = 'Pause';
       });
+
+      const settingsTitle = document.getElementById('settings-title');
+      if (settingsTitle) {
+        settingsTitle.style.fontSize = isMobile() ? "2.2rem" : "1.5rem";
+        settingsTitle.style.fontWeight = "bold";
+      }
     </script>
   </body>
 </html>
