@@ -253,7 +253,19 @@ function makeCellsGroup(number, cell) {
 function clearCells() {
     for (const cell of allCells) {
         scene.remove(cell.mesh);
-        if (cell.membraneMesh) scene.remove(cell.membraneMesh);
+        if (cell.mesh.geometry) cell.mesh.geometry.dispose();
+        if (cell.mesh.material) {
+            if (Array.isArray(cell.mesh.material)) {
+                cell.mesh.material.forEach(m => m.dispose && m.dispose());
+            } else {
+                cell.mesh.material.dispose && cell.mesh.material.dispose();
+            }
+        }
+        if (cell.membraneMesh) {
+            scene.remove(cell.membraneMesh);
+            if (cell.membraneMesh.geometry) cell.membraneMesh.geometry.dispose();
+            if (cell.membraneMesh.material) cell.membraneMesh.material.dispose && cell.membraneMesh.material.dispose();
+        }
     }
     allCells = [];
 }
@@ -527,4 +539,10 @@ function animate() {
     requestAnimationFrame(animate);
 }
 animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+});
 
