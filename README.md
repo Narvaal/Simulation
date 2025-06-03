@@ -13,5 +13,6 @@ The project uses Node.js for development tooling and leverages several libraries
 To run the project in development mode, use:
 
 ```bash
+cd simulation
 npm install
 npm run dev
