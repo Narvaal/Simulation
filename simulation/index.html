@@ -25,9 +25,20 @@
       <img src="/logo.png" alt="Cell Logo" style="max-width: 100%; max-height: 100px;">
       <div id="instructions-text" style="color:#fff; font-size:1.15rem; margin-bottom: 1.2rem; line-height:1.6;">
         <br>
-        <b>Welcome to my lab</b><br>
+        <b>Welcome to my lab</b><br><br>
+        Here you can <b>observe</b> my little cells and <b>interact</b> with them.<br><br>
+        <iframe
+          id="ytplayer"
+          width="560"
+          height="315"
+          src="https://www.youtube.com/embed/m7UbT_fIBlw?enablejsapi=1"
+          title="YouTube video player"
+          frameborder="0"
+          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+          referrerpolicy="strict-origin-when-cross-origin"
+          allowfullscreen>
+        </iframe>
         <br>
-        Here you can <b>observe</b> my little cells and <b>interact</b> with them.<br>
         <span style="color:#4fc3f7;">Scroll</span> to zoom, 
         <span style="color:#4fc3f7;">right click</span> to make cells move and
         <span style="color:#4fc3f7;">left click</span> to drag the camera.
@@ -66,9 +77,15 @@
     </button>
 
     <canvas id="bg" style="user-select: none; -webkit-user-select: none; -ms-user-select: none;"></canvas>
-
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script type="module" src="/src/magic.js"></script>
     <script>
+      const pauseBtn = document.getElementById('btn-pause');
+      const randomBtn = document.getElementById('btn-random');
+      const btnClose = document.getElementById('btn-close-settings');
+      const btnOpen = document.getElementById('btn-open-settings');
+      const panel = document.getElementById('settings-panel');
+
       function isMobile() {
         return /Mobi|Android|iPhone|iPad|iPod|Opera Mini|IEMobile/i.test(navigator.userAgent);
       }
@@ -76,19 +93,12 @@
       if (isMobile()) {
         document.body.style.fontSize = "1.3rem";
         const instructionsText = document.getElementById('instructions-text');
-        if (instructionsText) {
-          instructionsText.style.fontSize = "2rem";
-        }
+        if (instructionsText) instructionsText.style.fontSize = "2rem";
         const instructionsNote = document.getElementById('instructions-note');
-        if (instructionsNote) {
-          instructionsNote.style.fontSize = "1.7rem";
-        }
+        if (instructionsNote) instructionsNote.style.fontSize = "1.7rem";
         const instructionsStart = document.getElementById('instructions-start');
-        if (instructionsStart) {
-          instructionsStart.style.fontSize = "1.7rem";
-        }
-        const pauseBtn = document.getElementById('btn-pause');
-        const randomBtn = document.getElementById('btn-random');
+        if (instructionsStart) instructionsStart.style.fontSize = "1.7rem";
+
         if (pauseBtn) {
           pauseBtn.classList.add('btn-lg', 'w-100', 'mb-2');
           pauseBtn.classList.remove('btn-sm', 'flex-fill');
@@ -133,22 +143,19 @@
           btnGroup.classList.add('d-block');
           btnGroup.style.width = "100%";
         }
-        const settingsPanel = document.getElementById('settings-panel');
-        if (settingsPanel) {
-          settingsPanel.style.width = "100vw";
-          settingsPanel.style.minWidth = "0";
-          settingsPanel.style.maxWidth = "100vw";
-          settingsPanel.style.height = "auto";
-          settingsPanel.style.minHeight = "0";
+        if (panel) {
+          panel.style.width = "100vw";
+          panel.style.minWidth = "0";
+          panel.style.maxWidth = "100vw";
+          panel.style.height = "auto";
+          panel.style.minHeight = "0";
         }
-        const btnClose = document.getElementById('btn-close-settings');
         if (btnClose) {
           btnClose.style.width = "3rem";
           btnClose.style.height = "3rem";
           btnClose.style.fontSize = "2.5rem";
           btnClose.style.padding = "0.5rem";
         }
-        const btnOpen = document.getElementById('btn-open-settings');
         if (btnOpen) {
           btnOpen.style.width = "4rem";
           btnOpen.style.height = "4rem";
@@ -164,11 +171,6 @@
         }
       }
 
-      const panel = document.getElementById('settings-panel');
-      const btnClose = document.getElementById('btn-close-settings');
-      const btnOpen = document.getElementById('btn-open-settings');
-      const pauseBtn = document.getElementById('btn-pause');
-
       btnClose.addEventListener('click', () => {
         panel.style.display = 'none';
         btnOpen.style.display = 'flex';
@@ -179,27 +181,37 @@
         btnOpen.style.display = 'none';
       });
 
-      // On page load, show panel and hide cog
       panel.style.display = 'block';
       btnOpen.style.display = 'none';
-
       window.paused = true;
       let gWas = null;
       if (typeof g !== "undefined") {
         gWas = g;
         g = 0;
       }
+
       pauseBtn.classList.add('active');
       pauseBtn.textContent = 'Resume';
+
+      let player;
+
+      // Required for YouTube API to call this
+      window.onYouTubeIframeAPIReady = function () {
+        player = new YT.Player('ytplayer');
+      };
 
       const instructions = document.getElementById('instructions-overlay');
       instructions.addEventListener('click', () => {
         instructions.style.opacity = '0';
-        instructions.style.display = 'none';
+        setTimeout(() => {
+          instructions.style.display = 'none';
+        }, 400);
         window.paused = false;
-        if (typeof gWas === "number") g = gWas;
-        pauseBtn.classList.remove('active');
-        pauseBtn.textContent = 'Pause';
+
+        // Stop the YouTube video
+        if (player && player.stopVideo) {
+          player.stopVideo();
+        }
       });
 
       const settingsTitle = document.getElementById('settings-title');
